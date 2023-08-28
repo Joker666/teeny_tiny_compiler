@@ -104,38 +104,29 @@ impl Lexer {
                 })
             }
             '=' => {
-                if self.peek() == '=' {
-                    let last_char = self.cur_char;
-                    self.next_char();
-                    token = Some(Token {
-                        text: format!("{}{}", last_char, self.cur_char),
-                        kind: TokenType::EqEq,
-                    })
-                } else {
-                    token = Some(Token {
-                        text: String::from(self.cur_char),
-                        kind: TokenType::Eq,
-                    })
-                }
+                token = self.handle_next_char(self.cur_char, TokenType::Eq);
             }
             '>' => {
-                if self.peek() == '=' {
-                    let last_char = self.cur_char;
-                    self.next_char();
-                    token = Some(Token {
-                        text: format!("{}{}", last_char, self.cur_char),
-                        kind: TokenType::GtEq,
-                    })
-                } else {
-                    token = Some(Token {
-                        text: String::from(self.cur_char),
-                        kind: TokenType::Gt,
-                    })
-                }
+                token = self.handle_next_char(self.cur_char, TokenType::Gt);
             }
             _ => self.abort(format!("Unknown token: {}", self.cur_char)),
         }
 
         token
+    }
+
+    fn handle_next_char(&mut self, last_char: char, token_type: TokenType) -> Option<Token> {
+        if self.peek() == '=' {
+            self.next_char();
+            Some(Token {
+                text: format!("{}{}", last_char, self.cur_char),
+                kind: token_type,
+            })
+        } else {
+            Some(Token {
+                text: String::from(self.cur_char),
+                kind: token_type,
+            })
+        }
     }
 }
