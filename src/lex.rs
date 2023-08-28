@@ -174,6 +174,37 @@ impl Lexer {
                 text: token_text,
                 kind: TokenType::Number,
             });
+        } else if self.cur_char.is_alphabetic() {
+            // Leading character is a letter, so this must be an identifier or a keyword.
+            // Get all consecutive alphanumeric characters.
+
+            let start_pos = self.cur_pos;
+
+            while self.peek().is_alphabetic() {
+                self.next_char();
+            }
+
+            // Check if the token is in the list of keywords.
+            let token_text: String = self
+                .source
+                .chars()
+                .skip(start_pos as usize)
+                .take((self.cur_pos + 1) as usize)
+                .collect(); // Get the substring.
+
+            let keyword = Token::check_if_keyword(token_text.as_str());
+
+            if keyword == TokenType::Unknown {
+                token = Some(Token {
+                    text: token_text,
+                    kind: TokenType::Ident,
+                });
+            } else {
+                token = Some(Token {
+                    text: token_text,
+                    kind: keyword,
+                });
+            }
         } else {
             self.abort(format!("Unknown token: {}", self.cur_char));
         }
