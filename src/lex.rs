@@ -66,95 +66,84 @@ impl Lexer {
 
         let mut token = None;
 
-        match self.cur_char {
-            '+' => {
-                token = Some(Token {
-                    text: String::from(self.cur_char),
-                    kind: TokenType::Plus,
-                })
-            }
-            '-' => {
-                token = Some(Token {
-                    text: String::from(self.cur_char),
-                    kind: TokenType::Minus,
-                })
-            }
-            '*' => {
-                token = Some(Token {
-                    text: String::from(self.cur_char),
-                    kind: TokenType::Asterisk,
-                })
-            }
-            '/' => {
-                token = Some(Token {
-                    text: String::from(self.cur_char),
-                    kind: TokenType::Slash,
-                })
-            }
-            '\n' => {
-                token = Some(Token {
-                    text: String::from(self.cur_char),
-                    kind: TokenType::Newline,
-                })
-            }
-            '\0' => {
-                token = Some(Token {
-                    text: String::from(self.cur_char),
-                    kind: TokenType::Eof,
-                })
-            }
-            '=' => {
-                token = self.handle_next_char_for_composite_chars(TokenType::Eq, TokenType::EqEq);
-            }
-            '>' => {
-                token = self.handle_next_char_for_composite_chars(TokenType::Gt, TokenType::GtEq);
-            }
-            '<' => {
-                token = self.handle_next_char_for_composite_chars(TokenType::Lt, TokenType::LtEq);
-            }
-            '!' => {
-                if self.peek() == '=' {
-                    let last_char = self.cur_char;
-                    self.next_char();
-                    token = Some(Token {
-                        text: format!("{}{}", last_char, self.cur_char),
-                        kind: TokenType::NotEq,
-                    })
-                } else {
-                    self.abort(format!("Expected !=, got !{}", self.cur_char));
-                }
-            }
-            '"' => {
+        if self.cur_char == '+' {
+            token = Some(Token {
+                text: String::from(self.cur_char),
+                kind: TokenType::Plus,
+            });
+        } else if self.cur_char == '-' {
+            token = Some(Token {
+                text: String::from(self.cur_char),
+                kind: TokenType::Minus,
+            });
+        } else if self.cur_char == '*' {
+            token = Some(Token {
+                text: String::from(self.cur_char),
+                kind: TokenType::Asterisk,
+            });
+        } else if self.cur_char == '/' {
+            token = Some(Token {
+                text: String::from(self.cur_char),
+                kind: TokenType::Slash,
+            });
+        } else if self.cur_char == '\n' {
+            token = Some(Token {
+                text: String::from(self.cur_char),
+                kind: TokenType::Newline,
+            });
+        } else if self.cur_char == '\0' {
+            token = Some(Token {
+                text: String::from(self.cur_char),
+                kind: TokenType::Eof,
+            });
+        } else if self.cur_char == '=' {
+            token = self.handle_next_char_for_composite_chars(TokenType::Eq, TokenType::EqEq);
+        } else if self.cur_char == '>' {
+            token = self.handle_next_char_for_composite_chars(TokenType::Gt, TokenType::GtEq);
+        } else if self.cur_char == '<' {
+            token = self.handle_next_char_for_composite_chars(TokenType::Lt, TokenType::LtEq);
+        } else if self.cur_char == '!' {
+            if self.peek() == '=' {
+                let last_char = self.cur_char;
                 self.next_char();
-                let start_pos = self.cur_pos;
-
-                while self.cur_char != '"' {
-                    // Don't allow special characters in the string. No escape characters, newlines, tabs, or %.
-                    // We will be using C's printf on this string.
-                    if self.cur_char == '\r'
-                        || self.cur_char == '\n'
-                        || self.cur_char == '\t'
-                        || self.cur_char == '\\'
-                        || self.cur_char == '%'
-                    {
-                        self.abort(String::from("Illegal character in string."))
-                    }
-                    self.next_char();
-                }
-
-                let token_text = self
-                    .source
-                    .chars()
-                    .skip(start_pos as usize)
-                    .take(self.cur_pos as usize)
-                    .collect(); // Get the substring.
-
                 token = Some(Token {
-                    text: token_text,
+                    text: format!("{}{}", last_char, self.cur_char),
                     kind: TokenType::NotEq,
-                })
+                });
+            } else {
+                self.abort(format!("Expected !=, got !{}", self.cur_char));
             }
-            _ => self.abort(format!("Unknown token: {}", self.cur_char)),
+        } else if self.cur_char == '"' {
+            self.next_char();
+            let start_pos = self.cur_pos;
+
+            while self.cur_char != '"' {
+                // Don't allow special characters in the string. No escape characters, newlines, tabs, or %.
+                // We will be using C's printf on this string.
+                if self.cur_char == '\r'
+                    || self.cur_char == '\n'
+                    || self.cur_char == '\t'
+                    || self.cur_char == '\\'
+                    || self.cur_char == '%'
+                {
+                    self.abort(String::from("Illegal character in string."));
+                }
+                self.next_char();
+            }
+
+            let token_text = self
+                .source
+                .chars()
+                .skip(start_pos as usize)
+                .take(self.cur_pos as usize)
+                .collect(); // Get the substring.
+
+            token = Some(Token {
+                text: token_text,
+                kind: TokenType::NotEq,
+            });
+        } else {
+            self.abort(format!("Unknown token: {}", self.cur_char));
         }
 
         self.next_char();
