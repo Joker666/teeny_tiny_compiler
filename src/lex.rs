@@ -141,23 +141,23 @@ impl Lexer {
                 text: token_text,
                 kind: TokenType::String,
             });
-        } else if self.cur_char.is_digit(10) {
+        } else if self.cur_char.is_ascii_digit() {
             // Leading character is a digit, so this must be a number.
             // Get all consecutive digits and decimal if there is one.
             let start_pos = self.cur_pos;
 
-            while self.peek().is_digit(10) {
+            while self.peek().is_ascii_digit() {
                 self.next_char();
             }
 
             if self.peek() == '.' {
                 self.next_char();
 
-                if !self.peek().is_digit(10) {
+                if !self.peek().is_ascii_digit() {
                     self.abort(String::from("Illegal character in number."));
                 }
 
-                while self.peek().is_digit(10) {
+                while self.peek().is_ascii_digit() {
                     self.next_char();
                 }
             }
