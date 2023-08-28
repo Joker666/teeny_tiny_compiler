@@ -157,6 +157,7 @@ impl Lexer {
             _ => self.abort(format!("Unknown token: {}", self.cur_char)),
         }
 
+        self.next_char();
         token
     }
 
