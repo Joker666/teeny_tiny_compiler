@@ -41,6 +41,8 @@ pub struct Token {
 }
 
 impl Token {
+    /// Create a new token with a given text and type. We can't
+    /// use the keyword type, so we use kind here.
     pub fn new(token_text: &str, kind: TokenType) -> Self {
         Self {
             text: token_text.parse().unwrap(),
@@ -48,6 +50,7 @@ impl Token {
         }
     }
 
+    /// Return the token type of a given string keyword
     pub fn check_if_keyword(token_text: &str) -> TokenType {
         match token_text {
             "LABEL" => TokenType::Label,

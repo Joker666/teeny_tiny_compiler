@@ -1,3 +1,5 @@
+use super::token::{Token, TokenType};
+
 #[derive(Debug)]
 pub struct Lexer {
     pub source: String,
@@ -18,7 +20,7 @@ impl Lexer {
         new_self
     }
 
-    // Process the next character.
+    /// Process the next character.
     pub fn next_char(&mut self) {
         self.cur_pos += 1;
 
@@ -29,7 +31,7 @@ impl Lexer {
         }
     }
 
-    // Return the lookahead character.
+    /// Return the lookahead character.
     pub fn peek(&self) -> char {
         if self.cur_pos + 1 >= self.source.len() as i32 {
             return '\0';
@@ -37,19 +39,19 @@ impl Lexer {
         self.source.chars().nth((self.cur_pos + 1) as usize).unwrap()
     }
 
-    // Invalid token found, print error message and exit.
-    pub fn abort(message: String) {
+    /// Invalid token found, print error message and exit.
+    pub fn abort(&self, message: String) {
         panic!("{}", message)
     }
 
-    // Skip whitespace except newlines, which we will use to indicate the end of a statement.
+    /// Skip whitespace except newlines, which we will use to indicate the end of a statement.
     pub fn skip_whitespace(&mut self) {
         while self.cur_char == ' ' {
             self.next_char()
         }
     }
 
-    // Skip comments in the code.
+    /// Skip comments in the code.
     pub fn skip_comment(&mut self) {
         if self.cur_char == '#' {
             while self.cur_char != '\n' {
@@ -58,5 +60,82 @@ impl Lexer {
         }
     }
 
-    pub fn get_token(&self) {}
+    pub fn get_token(&mut self) -> Option<Token> {
+        self.skip_whitespace();
+        self.skip_comment();
+
+        let mut token = None;
+
+        match self.cur_char {
+            '+' => {
+                token = Some(Token {
+                    text: String::from(self.cur_char),
+                    kind: TokenType::Plus,
+                })
+            }
+            '-' => {
+                token = Some(Token {
+                    text: String::from(self.cur_char),
+                    kind: TokenType::Minus,
+                })
+            }
+            '*' => {
+                token = Some(Token {
+                    text: String::from(self.cur_char),
+                    kind: TokenType::Asterisk,
+                })
+            }
+            '/' => {
+                token = Some(Token {
+                    text: String::from(self.cur_char),
+                    kind: TokenType::Slash,
+                })
+            }
+            '\n' => {
+                token = Some(Token {
+                    text: String::from(self.cur_char),
+                    kind: TokenType::Newline,
+                })
+            }
+            '\0' => {
+                token = Some(Token {
+                    text: String::from(self.cur_char),
+                    kind: TokenType::Eof,
+                })
+            }
+            '=' => {
+                if self.peek() == '=' {
+                    let last_char = self.cur_char;
+                    self.next_char();
+                    token = Some(Token {
+                        text: format!("{}{}", last_char, self.cur_char),
+                        kind: TokenType::EqEq,
+                    })
+                } else {
+                    token = Some(Token {
+                        text: String::from(self.cur_char),
+                        kind: TokenType::Eq,
+                    })
+                }
+            }
+            '>' => {
+                if self.peek() == '=' {
+                    let last_char = self.cur_char;
+                    self.next_char();
+                    token = Some(Token {
+                        text: format!("{}{}", last_char, self.cur_char),
+                        kind: TokenType::GtEq,
+                    })
+                } else {
+                    token = Some(Token {
+                        text: String::from(self.cur_char),
+                        kind: TokenType::Gt,
+                    })
+                }
+            }
+            _ => self.abort(format!("Unknown token: {}", self.cur_char)),
+        }
+
+        token
+    }
 }
