@@ -140,12 +140,43 @@ impl Lexer {
 
             token = Some(Token {
                 text: token_text,
-                kind: TokenType::NotEq,
+                kind: TokenType::String,
+            });
+        } else if self.cur_char.is_digit(10) {
+            // Leading character is a digit, so this must be a number.
+            // Get all consecutive digits and decimal if there is one.
+            let start_pos = self.cur_pos;
+
+            while self.peek().is_digit(10) {
+                self.next_char();
+            }
+
+            if self.peek() == '.' {
+                self.next_char();
+
+                if !self.peek().is_digit(10) {
+                    self.abort(String::from("Illegal character in number."));
+                }
+
+                while self.peek().is_digit(10) {
+                    self.next_char();
+                }
+            }
+
+            let token_text = self
+                .source
+                .chars()
+                .skip(start_pos as usize)
+                .take((self.cur_pos + 1) as usize)
+                .collect(); // Get the substring.
+
+            token = Some(Token {
+                text: token_text,
+                kind: TokenType::Number,
             });
         } else {
             self.abort(format!("Unknown token: {}", self.cur_char));
         }
-
         self.next_char();
         token
     }
