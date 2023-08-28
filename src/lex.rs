@@ -40,7 +40,7 @@ impl Lexer {
     }
 
     /// Invalid token found, print error message and exit.
-    pub fn abort(&self, message: String) {
+    pub fn abort(&self, message: &str) {
         panic!("{}", message)
     }
 
@@ -111,7 +111,7 @@ impl Lexer {
                     kind: TokenType::NotEq,
                 });
             } else {
-                self.abort(format!("Expected !=, got !{}", self.cur_char));
+                self.abort(format!("Expected !=, got !{}", self.cur_char).as_str());
             }
         } else if self.cur_char == '"' {
             self.next_char();
@@ -122,7 +122,7 @@ impl Lexer {
                 // We will be using C's printf on this string.
                 match self.cur_char {
                     '\r' | '\n' | '\t' | '\\' | '%' => {
-                        self.abort(String::from("Illegal character in string."));
+                        self.abort("Illegal character in string");
                     }
                     _ => {
                         self.next_char();
@@ -154,7 +154,7 @@ impl Lexer {
                 self.next_char();
 
                 if !self.peek().is_ascii_digit() {
-                    self.abort(String::from("Illegal character in number."));
+                    self.abort("Illegal character in number");
                 }
 
                 while self.peek().is_ascii_digit() {
@@ -205,7 +205,7 @@ impl Lexer {
                 });
             }
         } else {
-            self.abort(format!("Unknown token: {}", self.cur_char));
+            self.abort(format!("Unknown token: {}", self.cur_char).as_str());
         }
         self.next_char();
         token
