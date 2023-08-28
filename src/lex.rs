@@ -124,6 +124,36 @@ impl Lexer {
                     self.abort(format!("Expected !=, got !{}", self.cur_char));
                 }
             }
+            '"' => {
+                self.next_char();
+                let start_pos = self.cur_pos;
+
+                while self.cur_char != '"' {
+                    // Don't allow special characters in the string. No escape characters, newlines, tabs, or %.
+                    // We will be using C's printf on this string.
+                    if self.cur_char == '\r'
+                        || self.cur_char == '\n'
+                        || self.cur_char == '\t'
+                        || self.cur_char == '\\'
+                        || self.cur_char == '%'
+                    {
+                        self.abort(String::from("Illegal character in string."))
+                    }
+                    self.next_char();
+                }
+
+                let token_text = self
+                    .source
+                    .chars()
+                    .skip(start_pos as usize)
+                    .take(self.cur_pos as usize)
+                    .collect(); // Get the substring.
+
+                token = Some(Token {
+                    text: token_text,
+                    kind: TokenType::NotEq,
+                })
+            }
             _ => self.abort(format!("Unknown token: {}", self.cur_char)),
         }
 
