@@ -11,13 +11,20 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     assert_eq!(args.len(), 2, "Expected the teeny file");
 
-    let source = "+- \"This is a string\" # This is a comment!\n */";
+    let source = "IF+-123 foo*THEN/";
     let mut lexer = Lexer::new(source);
-    let mut token = lexer.get_token().unwrap();
+
+    let mut token = match lexer.get_token() {
+        None => panic!("Token not found"),
+        Some(t) => t,
+    };
 
     while token.kind != TokenType::Eof {
         println!("{:?}", token.kind);
-        token = lexer.get_token().unwrap();
+        token = match lexer.get_token() {
+            None => panic!("Token not found"),
+            Some(t) => t,
+        };
     }
 }
 
