@@ -104,10 +104,25 @@ impl Lexer {
                 })
             }
             '=' => {
-                token = self.handle_next_char(self.cur_char, TokenType::Eq);
+                token = self.handle_next_char_for_composite_chars(TokenType::Eq, TokenType::EqEq);
             }
             '>' => {
-                token = self.handle_next_char(self.cur_char, TokenType::Gt);
+                token = self.handle_next_char_for_composite_chars(TokenType::Gt, TokenType::GtEq);
+            }
+            '<' => {
+                token = self.handle_next_char_for_composite_chars(TokenType::Lt, TokenType::LtEq);
+            }
+            '!' => {
+                if self.peek() == '=' {
+                    let last_char = self.cur_char;
+                    self.next_char();
+                    token = Some(Token {
+                        text: format!("{}{}", last_char, self.cur_char),
+                        kind: TokenType::NotEq,
+                    })
+                } else {
+                    self.abort(format!("Expected !=, got !{}", self.cur_char));
+                }
             }
             _ => self.abort(format!("Unknown token: {}", self.cur_char)),
         }
@@ -115,12 +130,17 @@ impl Lexer {
         token
     }
 
-    fn handle_next_char(&mut self, last_char: char, token_type: TokenType) -> Option<Token> {
+    fn handle_next_char_for_composite_chars(
+        &mut self,
+        token_type: TokenType,
+        other_token_type: TokenType,
+    ) -> Option<Token> {
         if self.peek() == '=' {
+            let last_char = self.cur_char;
             self.next_char();
             Some(Token {
                 text: format!("{}{}", last_char, self.cur_char),
-                kind: token_type,
+                kind: other_token_type,
             })
         } else {
             Some(Token {
