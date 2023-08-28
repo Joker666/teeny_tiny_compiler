@@ -120,15 +120,14 @@ impl Lexer {
             while self.cur_char != '"' {
                 // Don't allow special characters in the string. No escape characters, newlines, tabs, or %.
                 // We will be using C's printf on this string.
-                if self.cur_char == '\r'
-                    || self.cur_char == '\n'
-                    || self.cur_char == '\t'
-                    || self.cur_char == '\\'
-                    || self.cur_char == '%'
-                {
-                    self.abort(String::from("Illegal character in string."));
+                match self.cur_char {
+                    '\r' | '\n' | '\t' | '\\' | '%' => {
+                        self.abort(String::from("Illegal character in string."));
+                    }
+                    _ => {
+                        self.next_char();
+                    }
                 }
-                self.next_char();
             }
 
             let token_text = self
