@@ -156,8 +156,24 @@ impl Parser {
             self.next_token();
 
             if let Some(cur_token) = &self.cur_token {
-                self.labels_gotoed.insert(cur_token.text);
+                self.labels_gotoed.insert(cur_token.text.clone());
             }
+
+            self.match_token(TokenType::Ident);
+        } else if self.check_token(TokenType::Let) {
+            // "LET" ident "=" expression
+            println!("STATEMENT-LET");
+            self.next_token();
+
+            if let Some(cur_token) = &self.cur_token {
+                if !self.symbols.contains(&cur_token.text) {
+                    self.symbols.insert(cur_token.text.clone());
+                }
+            }
+
+            self.match_token(TokenType::Ident);
+            self.match_token(TokenType::Eq);
+            self.expression();
         }
 
         // Newline
