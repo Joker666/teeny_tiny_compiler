@@ -16,7 +16,7 @@ fn main() {
     assert_eq!(args.len(), 2, "Expected the teeny file");
 
     let path_arg = get_nth_arg(1);
-    let path = Path::new(path_arg.as_str());
+    let path = Path::new(&path_arg);
     let display = path.display();
 
     // Open the path in read-only mode, returns `io::Result<File>`
@@ -31,7 +31,7 @@ fn main() {
         panic!("couldn't read {}: {}", display, why);
     }
 
-    let lexer = Lexer::new(source.as_str());
+    let lexer = Lexer::new(&source);
     let mut parser = Parser::new(lexer);
 
     parser.program();

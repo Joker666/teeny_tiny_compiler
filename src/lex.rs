@@ -111,7 +111,7 @@ impl Lexer {
                     kind: TokenType::NotEq,
                 });
             } else {
-                self.abort(format!("Expected !=, got !{}", self.cur_char).as_str());
+                self.abort(&format!("Expected !=, got !{}", self.cur_char));
             }
         } else if self.cur_char == '"' {
             self.next_char();
@@ -175,7 +175,7 @@ impl Lexer {
 
             // Check if the token is in the list of keywords.
             let token_text: String = self.get_token_text(start_pos, self.cur_pos + 1);
-            let keyword = Token::check_if_keyword(token_text.as_str());
+            let keyword = Token::check_if_keyword(&token_text);
 
             if keyword == TokenType::Unknown {
                 token = Some(Token {
@@ -189,7 +189,7 @@ impl Lexer {
                 });
             }
         } else {
-            self.abort(format!("Unknown token: {}", self.cur_char).as_str());
+            self.abort(&format!("Unknown token: {}", self.cur_char));
         }
         self.next_char();
         token

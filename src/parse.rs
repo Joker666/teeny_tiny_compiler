@@ -1,12 +1,17 @@
 use super::lex::Lexer;
 use super::token::Token;
 use super::token::TokenType;
+use std::collections::HashSet;
+use std::fmt::format;
 
 #[derive(Debug)]
 pub struct Parser {
-    pub lexer: Lexer,
-    pub cur_token: Option<Token>,
-    pub peek_token: Option<Token>,
+    lexer: Lexer,
+    cur_token: Option<Token>,
+    peek_token: Option<Token>,
+    symbols: HashSet<String>,
+    labels_declared: HashSet<String>,
+    labels_gotoed: HashSet<String>,
 }
 
 impl Parser {
@@ -16,6 +21,9 @@ impl Parser {
             lexer,
             cur_token: None,
             peek_token: None,
+            symbols: Default::default(),
+            labels_declared: Default::default(),
+            labels_gotoed: Default::default(),
         };
 
         new_self.next_token();
@@ -44,7 +52,7 @@ impl Parser {
     pub fn match_token(&mut self, kind: TokenType) {
         if let Some(cur_token) = &self.cur_token {
             if cur_token.kind != kind {
-                self.abort(format!("Expected {:?}, got {:?}", kind, cur_token.kind).as_str())
+                self.abort(&format!("Expected {:?}, got {:?}", kind, cur_token.kind))
             }
 
             self.next_token();
@@ -99,6 +107,57 @@ impl Parser {
                 self.next_token();
             } else {
                 self.expression();
+            }
+        } else if self.check_token(TokenType::If) {
+            // Branched statement
+            // "IF" comparison "THEN" {statement} "ENDIF"
+            println!("STATEMENT-IF");
+            self.next_token();
+            self.comparison();
+
+            self.match_token(TokenType::Then);
+            self.nl();
+
+            while !self.check_token(TokenType::EndIf) {
+                self.statement();
+            }
+
+            self.match_token(TokenType::EndIf);
+        } else if self.check_token(TokenType::While) {
+            // Branched statement
+            // "WHILE" comparison "REPEAT" {statement} "ENDWHILE"
+            println!("STATEMENT-WHILE");
+            self.next_token();
+            self.comparison();
+
+            self.match_token(TokenType::Repeat);
+            self.nl();
+
+            while !self.check_token(TokenType::EndWhile) {
+                self.statement();
+            }
+
+            self.match_token(TokenType::EndWhile);
+        } else if self.check_token(TokenType::Label) {
+            // "LABEL" ident
+            println!("STATEMENT-LABEL");
+            self.next_token();
+
+            // Make sure this label doesn't already exist.
+            if let Some(cur_token) = &self.cur_token {
+                if self.labels_declared.contains(&cur_token.text) {
+                    self.abort(&format!("Label already exists: {}", cur_token.text))
+                }
+            }
+
+            self.match_token(TokenType::Ident);
+        } else if self.check_token(TokenType::Goto) {
+            // "GOTO" ident
+            println!("STATEMENT-GOTO");
+            self.next_token();
+
+            if let Some(cur_token) = &self.cur_token {
+                self.labels_gotoed.insert(cur_token.text);
             }
         }
 
