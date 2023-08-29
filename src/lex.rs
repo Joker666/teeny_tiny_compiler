@@ -60,42 +60,42 @@ impl Lexer {
         }
     }
 
-    pub fn get_token(&mut self) -> Option<Token> {
+    pub fn get_token(&mut self) -> Token {
         self.skip_whitespace();
         self.skip_comment();
 
-        let mut token = None;
+        let mut token = Token::default();
 
         if self.cur_char == '+' {
-            token = Some(Token {
+            token = Token {
                 text: String::from(self.cur_char),
                 kind: TokenType::Plus,
-            });
+            };
         } else if self.cur_char == '-' {
-            token = Some(Token {
+            token = Token {
                 text: String::from(self.cur_char),
                 kind: TokenType::Minus,
-            });
+            };
         } else if self.cur_char == '*' {
-            token = Some(Token {
+            token = Token {
                 text: String::from(self.cur_char),
                 kind: TokenType::Asterisk,
-            });
+            };
         } else if self.cur_char == '/' {
-            token = Some(Token {
+            token = Token {
                 text: String::from(self.cur_char),
                 kind: TokenType::Slash,
-            });
+            };
         } else if self.cur_char == '\n' {
-            token = Some(Token {
+            token = Token {
                 text: String::from(self.cur_char),
                 kind: TokenType::Newline,
-            });
+            };
         } else if self.cur_char == '\0' {
-            token = Some(Token {
+            token = Token {
                 text: String::from(self.cur_char),
                 kind: TokenType::Eof,
-            });
+            };
         } else if self.cur_char == '=' {
             token = self.handle_next_char_for_composite_chars(TokenType::Eq, TokenType::EqEq);
         } else if self.cur_char == '>' {
@@ -106,10 +106,10 @@ impl Lexer {
             if self.peek() == '=' {
                 let last_char = self.cur_char;
                 self.next_char();
-                token = Some(Token {
+                token = Token {
                     text: format!("{}{}", last_char, self.cur_char),
                     kind: TokenType::NotEq,
-                });
+                };
             } else {
                 self.abort(&format!("Expected !=, got !{}", self.cur_char));
             }
@@ -132,10 +132,10 @@ impl Lexer {
 
             let token_text = self.get_token_text(start_pos, self.cur_pos); // Get the substring.
 
-            token = Some(Token {
+            token = Token {
                 text: token_text,
                 kind: TokenType::String,
-            });
+            };
         } else if self.cur_char.is_ascii_digit() {
             // Leading character is a digit, so this must be a number.
             // Get all consecutive digits and decimal if there is one.
@@ -159,10 +159,10 @@ impl Lexer {
 
             let token_text = self.get_token_text(start_pos, self.cur_pos + 1);
 
-            token = Some(Token {
+            token = Token {
                 text: token_text,
                 kind: TokenType::Number,
-            });
+            };
         } else if self.cur_char.is_alphabetic() {
             // Leading character is a letter, so this must be an identifier or a keyword.
             // Get all consecutive alphanumeric characters.
@@ -178,15 +178,15 @@ impl Lexer {
             let keyword = Token::check_if_keyword(&token_text);
 
             if keyword == TokenType::Unknown {
-                token = Some(Token {
+                token = Token {
                     text: token_text,
                     kind: TokenType::Ident,
-                });
+                };
             } else {
-                token = Some(Token {
+                token = Token {
                     text: token_text,
                     kind: keyword,
-                });
+                };
             }
         } else {
             self.abort(&format!("Unknown token: {}", self.cur_char));
@@ -195,23 +195,19 @@ impl Lexer {
         token
     }
 
-    fn handle_next_char_for_composite_chars(
-        &mut self,
-        token_type: TokenType,
-        other_token_type: TokenType,
-    ) -> Option<Token> {
+    fn handle_next_char_for_composite_chars(&mut self, token_type: TokenType, other_token_type: TokenType) -> Token {
         if self.peek() == '=' {
             let last_char = self.cur_char;
             self.next_char();
-            Some(Token {
+            Token {
                 text: format!("{}{}", last_char, self.cur_char),
                 kind: other_token_type,
-            })
+            }
         } else {
-            Some(Token {
+            Token {
                 text: String::from(self.cur_char),
                 kind: token_type,
-            })
+            }
         }
     }
 
