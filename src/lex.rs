@@ -130,12 +130,7 @@ impl Lexer {
                 }
             }
 
-            let token_text = self
-                .source
-                .chars()
-                .skip(start_pos as usize)
-                .take(self.cur_pos as usize)
-                .collect(); // Get the substring.
+            let token_text = self.get_token_text(start_pos, self.cur_pos); // Get the substring.
 
             token = Some(Token {
                 text: token_text,
@@ -162,12 +157,7 @@ impl Lexer {
                 }
             }
 
-            let token_text = self
-                .source
-                .chars()
-                .skip(start_pos as usize)
-                .take((self.cur_pos + 1) as usize)
-                .collect(); // Get the substring.
+            let token_text = self.get_token_text(start_pos, self.cur_pos + 1);
 
             token = Some(Token {
                 text: token_text,
@@ -184,13 +174,7 @@ impl Lexer {
             }
 
             // Check if the token is in the list of keywords.
-            let token_text: String = self
-                .source
-                .chars()
-                .skip(start_pos as usize)
-                .take((self.cur_pos + 1) as usize)
-                .collect(); // Get the substring.
-
+            let token_text: String = self.get_token_text(start_pos, self.cur_pos + 1);
             let keyword = Token::check_if_keyword(token_text.as_str());
 
             if keyword == TokenType::Unknown {
@@ -229,5 +213,13 @@ impl Lexer {
                 kind: token_type,
             })
         }
+    }
+
+    fn get_token_text(&self, start_pos: i32, end_pos: i32) -> String {
+        self.source
+            .chars()
+            .skip(start_pos as usize)
+            .take((end_pos - start_pos) as usize)
+            .collect()
     }
 }

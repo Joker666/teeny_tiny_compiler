@@ -19,16 +19,15 @@ fn main() {
     let display = path.display();
 
     // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
+    let mut file = match File::open(path) {
         Err(why) => panic!("couldn't open {}: {}", display, why),
         Ok(file) => file,
     };
 
     // Read the file contents into a string, returns `io::Result<usize>`
     let mut source = String::new();
-    match file.read_to_string(&mut source) {
-        Err(why) => panic!("couldn't read {}: {}", display, why),
-        Ok(_) => print!("{} contains:\n{}", display, source),
+    if let Err(why) = file.read_to_string(&mut source) {
+        panic!("couldn't read {}: {}", display, why);
     }
 
     let mut lexer = Lexer::new(source.as_str());
@@ -39,7 +38,7 @@ fn main() {
     };
 
     while token.kind != TokenType::Eof {
-        println!("{:?} - {}", token.kind, token.text);
+        println!("{:?}", token.kind);
         token = match lexer.get_token() {
             None => panic!("token not found"),
             Some(t) => t,
