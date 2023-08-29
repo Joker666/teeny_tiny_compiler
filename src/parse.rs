@@ -213,27 +213,37 @@ impl Parser {
         self.nl();
     }
 
+    /// comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
     pub fn comparison(&self) {
         unimplemented!()
     }
 
+    /// expression ::= term {( "-" | "+" ) term}
     pub fn expression(&self) {
         unimplemented!()
     }
 
+    /// term ::= unary {( "/" | "*" ) unary}
     pub fn term(&self) {
         unimplemented!()
     }
 
+    /// unary ::= ["+" | "-"] primary
     pub fn unary(&self) {
         unimplemented!()
     }
 
+    /// primary ::= number | ident
     pub fn primary(&self) {
         unimplemented!()
     }
 
-    fn is_comparison_operator(&self) {
-        unimplemented!()
+    fn is_comparison_operator(&self) -> bool {
+        self.check_token(TokenType::Gt)
+            || self.check_token(TokenType::GtEq)
+            || self.check_token(TokenType::Lt)
+            || self.check_token(TokenType::LtEq)
+            || self.check_token(TokenType::EqEq)
+            || self.check_token(TokenType::NotEq)
     }
 }
