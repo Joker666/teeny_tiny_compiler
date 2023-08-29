@@ -3,11 +3,11 @@ mod parse;
 mod token;
 
 use lex::Lexer;
+use parse::Parser;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use token::TokenType;
 
 fn main() {
     println!("Teeny Tiny Compiler");
@@ -31,20 +31,11 @@ fn main() {
         panic!("couldn't read {}: {}", display, why);
     }
 
-    let mut lexer = Lexer::new(source.as_str());
+    let lexer = Lexer::new(source.as_str());
+    let parser = Parser::new(lexer);
 
-    let mut token = match lexer.get_token() {
-        None => panic!("token not found"),
-        Some(t) => t,
-    };
-
-    while token.kind != TokenType::Eof {
-        println!("{:?}", token.kind);
-        token = match lexer.get_token() {
-            None => panic!("token not found"),
-            Some(t) => t,
-        };
-    }
+    parser.program();
+    println!("Parsing completed")
 }
 
 fn get_nth_arg(n: usize) -> String {
