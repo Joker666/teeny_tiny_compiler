@@ -32,7 +32,7 @@ fn main() {
     }
 
     let lexer = Lexer::new(source.as_str());
-    let parser = Parser::new(lexer);
+    let mut parser = Parser::new(lexer);
 
     parser.program();
     println!("Parsing completed")

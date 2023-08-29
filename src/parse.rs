@@ -80,16 +80,30 @@ impl Parser {
 
     /// program ::= {statement}
     pub fn program(&mut self) {
-        println!("Program");
+        println!("PROGRAM");
 
-        while self.check_token(TokenType::Eof) {
+        while !self.check_token(TokenType::Eof) {
             self.statement();
         }
     }
 
     /// One of the following statements...
-    pub fn statement(&self) {
-        unimplemented!()
+    pub fn statement(&mut self) {
+        // Check the first token to see what kind of statement this is.
+        // "PRINT" (expression | string)
+        if self.check_token(TokenType::Print) {
+            println!("STATEMENT-PRINT");
+            self.next_token();
+
+            if self.check_token(TokenType::String) {
+                self.next_token();
+            } else {
+                self.expression();
+            }
+        }
+
+        // Newline
+        self.nl();
     }
 
     pub fn comparison(&self) {
