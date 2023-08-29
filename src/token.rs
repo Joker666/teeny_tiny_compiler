@@ -34,7 +34,7 @@ pub enum TokenType {
     GtEq,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub text: String,
     pub kind: TokenType,
