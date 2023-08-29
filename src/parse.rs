@@ -2,7 +2,6 @@ use super::lex::Lexer;
 use super::token::Token;
 use super::token::TokenType;
 use std::collections::HashSet;
-use std::fmt::format;
 
 #[derive(Debug)]
 pub struct Parser {
