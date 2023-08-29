@@ -60,3 +60,15 @@ impl Token {
         }
     }
 }
+
+/// When we create a new Token, we'd like to have a sentinel,
+/// uninitialized value. However, Rust wants something, so
+/// it has the Default trait.
+impl Default for Token {
+    fn default() -> Self {
+        Self {
+            text: String::new(),
+            kind: TokenType::Unknown,
+        }
+    }
+}
