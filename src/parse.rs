@@ -1,5 +1,6 @@
 use super::lex::Lexer;
 use super::token::Token;
+use super::token::TokenType;
 
 #[derive(Debug)]
 pub struct Parser {
@@ -9,48 +10,67 @@ pub struct Parser {
 }
 
 impl Parser {
+    /// Parser object keeps track of current token and checks if the code matches the grammar.
     pub fn new(lexer: Lexer) -> Self {
-        let new_self = Self {
+        let mut new_self = Self {
             lexer,
             cur_token: None,
             peek_token: None,
         };
 
         new_self.next_token();
-        new_self.next_token();
+        new_self.next_token(); // Call this twice to initialize current and peek.
 
         new_self
     }
 
-    pub fn check_token(&self) {
-        unimplemented!()
+    // Return true if the current token matches
+    pub fn check_token(&self, kind: TokenType) -> bool {
+        if let Some(cur_token) = &self.cur_token {
+            return cur_token.kind == kind;
+        }
+        false
     }
 
-    pub fn check_peek(&self) {
-        unimplemented!()
+    // Return true if the next token matches
+    pub fn check_peek(&self, kind: TokenType) -> bool {
+        if let Some(peek_token) = &self.peek_token {
+            return peek_token.kind == kind;
+        }
+        false
     }
 
-    pub fn match_token(&self) {
-        unimplemented!()
+    // Try to match current token. If matched advances the current token, If not, error.
+    pub fn match_token(&mut self, kind: TokenType) {
+        if let Some(cur_token) = &self.cur_token {
+            if cur_token.kind != kind {
+                self.abort(format!("Expected {:?}, got {:?}", kind, cur_token.kind).as_str())
+            }
+
+            self.next_token();
+        }
     }
 
-    pub fn next_token(&self) {
-        unimplemented!()
+    // Advances the current token
+    pub fn next_token(&mut self) {
+        self.cur_token = self.peek_token.clone();
+        self.peek_token = self.lexer.get_token();
     }
 
     pub fn abort(&self, message: &str) {
         panic!("{}", message)
     }
 
+    // ////////////////////////
+    // Lexer Interface
+    // ////////////////////////
+
+    /// nl ::= '\n'+
     pub fn nl(&self) {
         unimplemented!()
     }
 
     pub fn statement(&self) {
-        unimplemented!()
-    }
-
-    pub fn program(&self) {
         unimplemented!()
     }
 
@@ -72,6 +92,10 @@ impl Parser {
 
     pub fn primary(&self) {
         unimplemented!()
+    }
+
+    pub fn program(&self) {
+        println!("Program");
     }
 
     fn is_comparison_operator(&self) {
