@@ -271,8 +271,25 @@ impl Parser {
     }
 
     /// primary ::= number | ident
-    pub fn primary(&self) {
-        println!("EXPRESSION");
+    pub fn primary(&mut self) {
+        if let Some(cur_token) = &self.cur_token {
+            println!("PRIMARY ({})", cur_token.text)
+        }
+
+        if self.check_token(TokenType::Number) {
+            self.next_token();
+        } else if self.check_token(TokenType::Ident) {
+            if let Some(cur_token) = &self.cur_token {
+                if !self.symbols.contains(&cur_token.text) {
+                    self.abort(&format!("Referencing variable before assignment: {}", cur_token.text))
+                }
+            }
+
+            self.next_token();
+        } else if let Some(cur_token) = &self.cur_token {
+            // Error!
+            self.abort(&format!("Unexpected token at {}", cur_token.text))
+        }
     }
 
     fn is_comparison_operator(&self) -> bool {
