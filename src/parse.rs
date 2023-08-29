@@ -20,13 +20,13 @@ impl Parser {
             lexer,
             cur_token: None,
             peek_token: None,
-            symbols: Default::default(),
-            labels_declared: Default::default(),
-            labels_gotoed: Default::default(),
+            symbols: Default::default(),         // Variables declared so far
+            labels_declared: Default::default(), // Labels declared so far
+            labels_gotoed: Default::default(),   // Labels goto'ed so far
         };
 
         new_self.next_token();
-        new_self.next_token(); // Call this twice to initialize current and peek.
+        new_self.next_token(); // Call this twice to initialize current and peek
 
         new_self
     }
@@ -88,6 +88,10 @@ impl Parser {
     /// program ::= {statement}
     pub fn program(&mut self) {
         println!("PROGRAM");
+
+        while self.check_token(TokenType::Newline) {
+            self.next_token();
+        }
 
         while !self.check_token(TokenType::Eof) {
             self.statement();
@@ -166,6 +170,7 @@ impl Parser {
             self.next_token();
 
             if let Some(cur_token) = &self.cur_token {
+                // If variable doesn't already exist, declare it
                 if !self.symbols.contains(&cur_token.text) {
                     self.symbols.insert(cur_token.text.clone());
                 }
@@ -174,6 +179,25 @@ impl Parser {
             self.match_token(TokenType::Ident);
             self.match_token(TokenType::Eq);
             self.expression();
+        } else if self.check_token(TokenType::Input) {
+            // "INPUT" ident
+            println!("STATEMENT-INPUT");
+            self.next_token();
+
+            if let Some(cur_token) = &self.cur_token {
+                // If variable doesn't already exist, declare it
+                if !self.symbols.contains(&cur_token.text) {
+                    self.symbols.insert(cur_token.text.clone());
+                }
+            }
+            self.match_token(TokenType::Ident);
+        } else {
+            if let Some(cur_token) = &self.cur_token {
+                self.abort(&format!(
+                    "Invalid statement at {} ({:?})",
+                    cur_token.text, cur_token.kind
+                ))
+            }
         }
 
         // Newline
