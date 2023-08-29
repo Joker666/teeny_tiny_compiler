@@ -24,7 +24,7 @@ impl Parser {
         new_self
     }
 
-    // Return true if the current token matches
+    /// Return true if the current token matches
     pub fn check_token(&self, kind: TokenType) -> bool {
         if let Some(cur_token) = &self.cur_token {
             return cur_token.kind == kind;
@@ -32,7 +32,7 @@ impl Parser {
         false
     }
 
-    // Return true if the next token matches
+    /// Return true if the next token matches
     pub fn check_peek(&self, kind: TokenType) -> bool {
         if let Some(peek_token) = &self.peek_token {
             return peek_token.kind == kind;
@@ -40,7 +40,7 @@ impl Parser {
         false
     }
 
-    // Try to match current token. If matched advances the current token, If not, error.
+    /// Try to match current token. If matched advances the current token, If not, error.
     pub fn match_token(&mut self, kind: TokenType) {
         if let Some(cur_token) = &self.cur_token {
             if cur_token.kind != kind {
@@ -51,7 +51,7 @@ impl Parser {
         }
     }
 
-    // Advances the current token
+    /// Advances the current token
     pub fn next_token(&mut self) {
         self.cur_token = self.peek_token.clone();
         self.peek_token = self.lexer.get_token();
@@ -66,10 +66,28 @@ impl Parser {
     // ////////////////////////
 
     /// nl ::= '\n'+
-    pub fn nl(&self) {
-        unimplemented!()
+    pub fn nl(&mut self) {
+        println!("NEWLINE");
+
+        // Require at least one newline
+        self.match_token(TokenType::Newline);
+
+        // But we will allow extra newlines too, of course
+        while self.check_token(TokenType::Newline) {
+            self.match_token(TokenType::Newline);
+        }
     }
 
+    /// program ::= {statement}
+    pub fn program(&mut self) {
+        println!("Program");
+
+        while self.check_token(TokenType::Eof) {
+            self.statement();
+        }
+    }
+
+    /// One of the following statements...
     pub fn statement(&self) {
         unimplemented!()
     }
@@ -92,10 +110,6 @@ impl Parser {
 
     pub fn primary(&self) {
         unimplemented!()
-    }
-
-    pub fn program(&self) {
-        println!("Program");
     }
 
     fn is_comparison_operator(&self) {
