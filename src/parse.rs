@@ -214,28 +214,65 @@ impl Parser {
     }
 
     /// comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
-    pub fn comparison(&self) {
-        unimplemented!()
+    pub fn comparison(&mut self) {
+        println!("COMPARISON");
+
+        self.expression();
+
+        // Must be at least one comparison operator and another expression
+        if self.is_comparison_operator() {
+            self.next_token();
+            self.expression();
+        } else if let Some(cur_token) = &self.cur_token {
+            self.abort(&format!("Expected comparison operator at: {}", cur_token.text))
+        }
+
+        // Can have 0 or more comparison operator and expressions
+        while self.is_comparison_operator() {
+            self.next_token();
+            self.expression();
+        }
     }
 
     /// expression ::= term {( "-" | "+" ) term}
-    pub fn expression(&self) {
-        unimplemented!()
+    pub fn expression(&mut self) {
+        println!("EXPRESSION");
+
+        self.term();
+
+        //  Can have 0 or more +/- and expressions
+        while self.check_token(TokenType::Plus) || self.check_token(TokenType::Minus) {
+            self.next_token();
+            self.term();
+        }
     }
 
     /// term ::= unary {( "/" | "*" ) unary}
-    pub fn term(&self) {
-        unimplemented!()
+    pub fn term(&mut self) {
+        println!("TERM");
+
+        self.unary();
+
+        // Can have 0 or more *// and expressions
+        while self.check_token(TokenType::Slash) || self.check_token(TokenType::Asterisk) {
+            self.next_token();
+            self.unary();
+        }
     }
 
     /// unary ::= ["+" | "-"] primary
-    pub fn unary(&self) {
-        unimplemented!()
+    pub fn unary(&mut self) {
+        println!("UNARY");
+
+        if self.check_token(TokenType::Plus) || self.check_token(TokenType::Minus) {
+            self.next_token();
+        }
+        self.primary()
     }
 
     /// primary ::= number | ident
     pub fn primary(&self) {
-        unimplemented!()
+        println!("EXPRESSION");
     }
 
     fn is_comparison_operator(&self) -> bool {
