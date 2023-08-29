@@ -89,12 +89,21 @@ impl Parser {
     pub fn program(&mut self) {
         println!("PROGRAM");
 
+        // Since some newlines are required in our grammar, need to skip the excess
         while self.check_token(TokenType::Newline) {
             self.next_token();
         }
 
+        // Parse all the statements in the program
         while !self.check_token(TokenType::Eof) {
             self.statement();
+        }
+
+        // Check that each label referenced in a GOTO is declared
+        for x in self.labels_gotoed.iter() {
+            if !self.labels_declared.contains(x) {
+                self.abort(&format!("Label {} referenced but not declared", x))
+            }
         }
     }
 
