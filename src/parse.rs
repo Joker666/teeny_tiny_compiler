@@ -200,13 +200,13 @@ impl Parser {
                 }
             }
             self.match_token(TokenType::Ident);
+        } else if let Some(cur_token) = &self.cur_token {
+            self.abort(&format!(
+                "Invalid statement at {} ({:?})",
+                cur_token.text, cur_token.kind
+            ))
         } else {
-            if let Some(cur_token) = &self.cur_token {
-                self.abort(&format!(
-                    "Invalid statement at {} ({:?})",
-                    cur_token.text, cur_token.kind
-                ))
-            }
+            self.abort("Expected statement keyword");
         }
 
         // Newline
