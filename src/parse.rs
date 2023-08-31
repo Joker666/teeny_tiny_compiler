@@ -14,7 +14,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    /// Parser object keeps track of current token and checks if the code matches the grammar.
+    /// Parser object keeps track of current token and checks if the code matches the grammar
     pub fn new(lexer: Lexer) -> Self {
         let mut new_self = Self {
             lexer,

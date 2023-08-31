@@ -1,3 +1,4 @@
+mod emitter;
 mod lex;
 mod parse;
 mod token;

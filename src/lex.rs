@@ -7,6 +7,10 @@ pub struct Lexer {
     pub cur_char: char,
 }
 
+/// The Lexer struct implements lexical analysis for the compiler.
+/// It contains fields for the source code input and current token.
+/// The impl block provides methods to advance through the token stream
+/// and extract the next token from the source code.
 impl Lexer {
     pub fn new(source: &str) -> Self {
         let mut new_self = Self {
