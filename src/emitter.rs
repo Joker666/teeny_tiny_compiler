@@ -33,5 +33,6 @@ impl Emitter {
         let mut output_file = File::create(&self.full_path).unwrap();
         output_file.write_all(self.header.as_bytes()).unwrap();
         output_file.write_all(self.code.as_bytes()).unwrap();
+        output_file.sync_all().unwrap();
     }
 }

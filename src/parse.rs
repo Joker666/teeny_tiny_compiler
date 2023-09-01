@@ -64,8 +64,6 @@ impl<'a> Parser<'a> {
 
     /// nl ::= '\n'+
     pub fn nl(&mut self) {
-        println!("NEWLINE");
-
         // Require at least one newline
         self.match_token(TokenType::Newline);
 
@@ -107,23 +105,27 @@ impl<'a> Parser<'a> {
         // Check the first token to see what kind of statement this is.
         // "PRINT" (expression | string)
         if self.check_token(TokenType::Print) {
-            println!("STATEMENT-PRINT");
             self.next_token();
 
             if self.check_token(TokenType::String) {
+                self.emitter
+                    .emit_line(&format!("{}{}{}", "printf(\"", self.cur_token.text, "\\n\");"));
                 self.next_token();
             } else {
+                self.emitter.emit("printf(\"%.2f\\n\", (float)(");
                 self.expression();
+                self.emitter.emit_line("));");
             }
         } else if self.check_token(TokenType::If) {
             // Branched statement
             // "IF" comparison "THEN" {statement} "ENDIF"
-            println!("STATEMENT-IF");
             self.next_token();
+            self.emitter.emit("if(");
             self.comparison();
 
             self.match_token(TokenType::Then);
             self.nl();
+            self.emitter.emit_line("){");
 
             while !self.check_token(TokenType::EndIf) {
                 self.statement();
@@ -133,21 +135,22 @@ impl<'a> Parser<'a> {
         } else if self.check_token(TokenType::While) {
             // Branched statement
             // "WHILE" comparison "REPEAT" {statement} "ENDWHILE"
-            println!("STATEMENT-WHILE");
             self.next_token();
+            self.emitter.emit("while(");
             self.comparison();
 
             self.match_token(TokenType::Repeat);
             self.nl();
+            self.emitter.emit_line("){");
 
             while !self.check_token(TokenType::EndWhile) {
                 self.statement();
             }
 
             self.match_token(TokenType::EndWhile);
+            self.emitter.emit_line("}")
         } else if self.check_token(TokenType::Label) {
             // "LABEL" ident
-            println!("STATEMENT-LABEL");
             self.next_token();
 
             // Make sure this label doesn't already exist.
@@ -155,36 +158,47 @@ impl<'a> Parser<'a> {
                 self.abort(&format!("Label already exists: {}", self.cur_token.text))
             }
 
+            self.emitter.emit_line(&format!("{}:", self.cur_token.text));
             self.match_token(TokenType::Ident);
         } else if self.check_token(TokenType::Goto) {
             // "GOTO" ident
-            println!("STATEMENT-GOTO");
             self.next_token();
 
             self.labels_gotoed.insert(self.cur_token.text.clone());
+            self.emitter.emit_line(&format!("goto {};", self.cur_token.text));
             self.match_token(TokenType::Ident);
         } else if self.check_token(TokenType::Let) {
             // "LET" ident "=" expression
-            println!("STATEMENT-LET");
             self.next_token();
 
             // If variable doesn't already exist, declare it
             if !self.symbols.contains(&self.cur_token.text) {
                 self.symbols.insert(self.cur_token.text.clone());
+                self.emitter.header_line(&format!("float {};", self.cur_token.text));
             }
 
+            self.emitter.emit(&format!("{} = ", self.cur_token.text));
             self.match_token(TokenType::Ident);
             self.match_token(TokenType::Eq);
             self.expression();
+            self.emitter.emit_line(";");
         } else if self.check_token(TokenType::Input) {
             // "INPUT" ident
-            println!("STATEMENT-INPUT");
             self.next_token();
 
             // If variable doesn't already exist, declare it
             if !self.symbols.contains(&self.cur_token.text) {
                 self.symbols.insert(self.cur_token.text.clone());
+                self.emitter.header_line(&format!("float {};", self.cur_token.text));
             }
+
+            self.emitter.emit_line(&format!(
+                "{}{}{}",
+                "if (0 == scanf(\"%f\", &", self.cur_token.text, ")) {"
+            ));
+            self.emitter.emit_line(&format!("{} = 0;", self.cur_token.text));
+            self.emitter.emit_line("scanf(\"%*s\");");
+            self.emitter.emit_line("}");
             self.match_token(TokenType::Ident);
         } else {
             self.abort(&format!(
@@ -199,12 +213,11 @@ impl<'a> Parser<'a> {
 
     /// comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
     pub fn comparison(&mut self) {
-        println!("COMPARISON");
-
         self.expression();
 
         // Must be at least one comparison operator and another expression
         if self.is_comparison_operator() {
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
             self.expression();
         } else {
@@ -213,6 +226,7 @@ impl<'a> Parser<'a> {
 
         // Can have 0 or more comparison operator and expressions
         while self.is_comparison_operator() {
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
             self.expression();
         }
@@ -220,12 +234,11 @@ impl<'a> Parser<'a> {
 
     /// expression ::= term {( "-" | "+" ) term}
     pub fn expression(&mut self) {
-        println!("EXPRESSION");
-
         self.term();
 
         //  Can have 0 or more +/- and expressions
         while self.check_token(TokenType::Plus) || self.check_token(TokenType::Minus) {
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
             self.term();
         }
@@ -233,12 +246,11 @@ impl<'a> Parser<'a> {
 
     /// term ::= unary {( "/" | "*" ) unary}
     pub fn term(&mut self) {
-        println!("TERM");
-
         self.unary();
 
         // Can have 0 or more *// and expressions
         while self.check_token(TokenType::Slash) || self.check_token(TokenType::Asterisk) {
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
             self.unary();
         }
@@ -246,9 +258,8 @@ impl<'a> Parser<'a> {
 
     /// unary ::= ["+" | "-"] primary
     pub fn unary(&mut self) {
-        println!("UNARY");
-
         if self.check_token(TokenType::Plus) || self.check_token(TokenType::Minus) {
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
         }
         self.primary()
@@ -256,9 +267,8 @@ impl<'a> Parser<'a> {
 
     /// primary ::= number | ident
     pub fn primary(&mut self) {
-        println!("PRIMARY ({})", self.cur_token.text);
-
         if self.check_token(TokenType::Number) {
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
         } else if self.check_token(TokenType::Ident) {
             if !self.symbols.contains(&self.cur_token.text) {
@@ -268,6 +278,7 @@ impl<'a> Parser<'a> {
                 ))
             }
 
+            self.emitter.emit(&self.cur_token.text);
             self.next_token();
         } else {
             // Error!
