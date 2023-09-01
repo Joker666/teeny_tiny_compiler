@@ -1,11 +1,13 @@
+use super::emitter::Emitter;
 use super::lex::Lexer;
 use super::token::Token;
 use super::token::TokenType;
 use std::collections::HashSet;
 
 #[derive(Debug)]
-pub struct Parser {
+pub struct Parser<'a> {
     lexer: Lexer,
+    emitter: &'a mut Emitter,
     cur_token: Token,
     peek_token: Token,
     symbols: HashSet<String>,
@@ -13,11 +15,12 @@ pub struct Parser {
     labels_gotoed: HashSet<String>,
 }
 
-impl Parser {
+impl<'a> Parser<'a> {
     /// Parser object keeps track of current token and checks if the code matches the grammar
-    pub fn new(lexer: Lexer) -> Self {
+    pub fn new(lexer: Lexer, emitter: &'a mut Emitter) -> Self {
         let mut new_self = Self {
             lexer,
+            emitter,
             cur_token: Token::default(),
             peek_token: Token::default(),
             symbols: Default::default(),         // Variables declared so far
@@ -34,11 +37,6 @@ impl Parser {
     /// Return true if the current token matches
     pub fn check_token(&self, kind: TokenType) -> bool {
         self.cur_token.kind == kind
-    }
-
-    /// Return true if the next token matches
-    pub fn check_peek(&self, kind: TokenType) -> bool {
-        self.peek_token.kind == kind
     }
 
     /// Try to match current token. If matched advances the current token, If not, error.
@@ -79,7 +77,8 @@ impl Parser {
 
     /// program ::= {statement}
     pub fn program(&mut self) {
-        println!("PROGRAM");
+        self.emitter.header_line("#include <stdio.h>");
+        self.emitter.header_line("int main(void) {");
 
         // Since some newlines are required in our grammar, need to skip the excess
         while self.check_token(TokenType::Newline) {
@@ -90,6 +89,10 @@ impl Parser {
         while !self.check_token(TokenType::Eof) {
             self.statement();
         }
+
+        // Wrap things up
+        self.emitter.emit_line("return 0;");
+        self.emitter.emit_line("}");
 
         // Check that each label referenced in a GOTO is declared
         for x in self.labels_gotoed.iter() {

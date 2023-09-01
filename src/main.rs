@@ -3,6 +3,7 @@ mod lex;
 mod parse;
 mod token;
 
+use crate::emitter::Emitter;
 use lex::Lexer;
 use parse::Parser;
 use std::env;
@@ -33,10 +34,12 @@ fn main() {
     }
 
     let lexer = Lexer::new(&source);
-    let mut parser = Parser::new(lexer);
+    let mut emitter = Emitter::new("out.c");
+    let mut parser = Parser::new(lexer, &mut emitter);
 
     parser.program();
-    println!("Parsing completed")
+    emitter.write_file();
+    println!("Compiling completed")
 }
 
 fn get_nth_arg(n: usize) -> String {
