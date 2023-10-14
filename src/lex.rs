@@ -64,6 +64,13 @@ impl Lexer {
         }
     }
 
+    /// Retrieves the next token from the source code.
+    /// This function skips whitespace and comments, and returns the next token found.
+    /// If no more tokens are available, it returns an end-of-file token.
+    ///
+    /// # Returns
+    ///
+    /// The next token found in the source code.
     pub fn get_token(&mut self) -> Token {
         self.skip_whitespace();
         self.skip_comment();
@@ -199,6 +206,16 @@ impl Lexer {
         token
     }
 
+    /// Handles the next character for composite characters(=) in the source code.
+    ///
+    /// # Arguments
+    ///
+    /// * `token_type` - The token type for the current character.
+    /// * `other_token_type` - The token type for the next character if it matches.
+    ///
+    /// # Returns
+    ///
+    /// The token with the appropriate text and kind based on the next character.
     fn handle_next_char_for_composite_chars(&mut self, token_type: TokenType, other_token_type: TokenType) -> Token {
         if self.peek() == '=' {
             let last_char = self.cur_char;
@@ -215,6 +232,16 @@ impl Lexer {
         }
     }
 
+    /// Retrieves the text of a token from the source code.
+    ///
+    /// # Arguments
+    ///
+    /// * `start_pos` - The starting position of the token in the source code.
+    /// * `end_pos` - The ending position of the token in the source code.
+    ///
+    /// # Returns
+    ///
+    /// The text of the token as a `String`.
     fn get_token_text(&self, start_pos: i32, end_pos: i32) -> String {
         self.source
             .chars()
